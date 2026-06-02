@@ -12,12 +12,13 @@ use Illuminate\Support\Number;
 class GraduationImporter extends Importer
 {
     protected static ?string $model = Graduation::class;
-    protected function beforeSave(): void
-{
-    $setting = Setting::first();
 
-    $this->record->academic_year = $setting?->academic_year;
-}
+    protected function beforeSave(): void
+    {
+        $setting = Setting::first();
+
+        $this->record->academic_year = $setting?->academic_year;
+    }
 
     public static function getColumns(): array
     {
@@ -25,18 +26,35 @@ class GraduationImporter extends Importer
             ImportColumn::make('nisn')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
+
             ImportColumn::make('name')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
+
             ImportColumn::make('class')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
+
             ImportColumn::make('status')
-    ->requiredMapping()
-    ->rules([
-        'required',
-        'in:LULUS,TIDAK LULUS',
-    ]),
+                ->requiredMapping()
+                ->rules([
+                    'required',
+                    'in:LULUS,TIDAK LULUS',
+                ]),
+
+            ImportColumn::make('participant_number'),
+
+            ImportColumn::make('birth_place_date'),
+
+            ImportColumn::make('mtk_score')
+                ->numeric(),
+
+            ImportColumn::make('indo_score')
+                ->numeric(),
+
+            ImportColumn::make('mtk_category'),
+
+            ImportColumn::make('indo_category'),
         ];
     }
 
@@ -49,10 +67,14 @@ class GraduationImporter extends Importer
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = 'Your graduation import has completed and ' . Number::format($import->successful_rows) . ' ' . str('row')->plural($import->successful_rows) . ' imported.';
+        $body = 'Import data kelulusan selesai. '
+            . Number::format($import->successful_rows)
+            . ' data berhasil diproses.';
 
         if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' ' . Number::format($failedRowsCount) . ' ' . str('row')->plural($failedRowsCount) . ' failed to import.';
+            $body .= ' '
+                . Number::format($failedRowsCount)
+                . ' data gagal diproses.';
         }
 
         return $body;
